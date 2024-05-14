@@ -12,6 +12,8 @@ from matplotlib import pyplot as plt
 from torchvision import transforms
 from torchvision.models import vgg16
 
+from src.quntization import de_quntization_by_mask, quntization_by_mask
+
 to_pil_transform = transforms.ToPILImage()
 
 
@@ -47,7 +49,7 @@ def EntropyDecoder(bitstream, size_z, size_h, size_w):
     return decoded_data
 
 
-def process_images(test_loader, model, device, b, w=128, h=128):
+def process_images(test_loader, model, device, b, w=128, h=128, mask_quantization=False):
     imgs_encoded = []
     imgs_decoded = []
 
@@ -55,15 +57,19 @@ def process_images(test_loader, model, device, b, w=128, h=128):
         for test_batch in test_loader:
             test_batch = test_batch.to(device)
             encoded_images = model.encoder(test_batch)
+            if mask_quantization:
+                encoded_images = de_quntization_by_mask(quntization_by_mask(encoded_images))
             decoded_images = model.decoder(encoded_images)
 
             imgs_encoded.append(encoded_images.cpu().detach())
             imgs_decoded.append(decoded_images.cpu().detach())
 
     imgs_encoded = torch.vstack(imgs_encoded)
+    if mask_quantization:
+        imgs_encoded = quntization_by_mask(imgs_encoded)
     imgs_decoded = torch.vstack(imgs_decoded)
 
-    max_encoded_imgs = imgs_encoded.amax(dim=(1, 2, 3), keepdim=True)
+    max_encoded_imgs = imgs_encoded.amax(dim=(1, 2, 3), keepdim=True)  # ---
     # Normalize and quantize
     norm_imgs_encoded = imgs_encoded / max_encoded_imgs
     quantized_imgs_encoded = (torch.clip(norm_imgs_encoded, 0, 0.9999999) * pow(2, b)).to(
@@ -85,7 +91,9 @@ def process_images(test_loader, model, device, b, w=128, h=128):
 
     shift = 1.0 / pow(2, b + 1)
     dequantized_imgs_decoded = (quantized_imgs_decoded.to(torch.float32) / pow(2, b)) + shift
-    dequantized_denorm_imgs_decoded = dequantized_imgs_decoded * max_encoded_imgs
+    dequantized_denorm_imgs_decoded = dequantized_imgs_decoded * max_encoded_imgs  # ---
+    if mask_quantization:
+        dequantized_denorm_imgs_decoded = de_quntization_by_mask(dequantized_denorm_imgs_decoded)
 
     imgsQ_decoded = []
 
@@ -122,11 +130,12 @@ def JPEGRDSingleImage(torch_img, TargetBPP):
 
         bpp = bytesize * 8 / (width * height)
         psnr = PSNR_RGB(np.array(image), np.array(image_dec))
-        if abs(realbpp - TargetBPP) > abs(bpp - TargetBPP):
-            realbpp = bpp
-            realpsnr = psnr
-            realQ = Q
-            final_image = image_dec
+        rbpp_bigger_bpp = abs(realbpp - TargetBPP) > abs(bpp - TargetBPP)
+        # if abs(realbpp - TargetBPP) > abs(bpp - TargetBPP):
+        realbpp = bpp
+        realpsnr = psnr
+        realQ = Q
+        final_image = image_dec
 
     return final_image, realQ, realbpp, realpsnr
 

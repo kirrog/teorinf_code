@@ -28,9 +28,14 @@ os.environ["WANDB_PROJECT"] = "codec_ITMO"
 import os
 
 
+
+
 @click.command()
 @click.option("--config_file", default="config.yaml", help="Path to config YAML file")
 def main(config_file):
+
+
+
     with open(config_file, "r") as f:
         args_config = yaml.load(f, Loader=CLoader)
 
@@ -51,14 +56,7 @@ def main(config_file):
     model.to(device)
     model.eval()
 
-    b_t = args_config["training_args"]["b_t"]
-    b = args_config["training_args"].get("b", 2)
     batch_size = args_config["training_args"]["batch_size"]
-    learning_rate = args_config["training_args"]["learning_rate"]
-    use_aux_loss = args_config["training_args"].get("use_aux_loss", False)
-    if use_aux_loss:
-        AUX_Loss = PerceptualLoss().to(device)
-    aux_lambda = args_config["training_args"].get("aux_lambda", 0)
 
     train_dataset = ImageDataset(args_config["data"]["train_data_path"])
     test_dataset = ImageDataset(args_config["data"]["test_data_path"])
@@ -69,8 +67,9 @@ def main(config_file):
     logger.info("***** Running training *****")
     logger.info(f"Num examples = {len(train_dataset)}")
 
-    global_step = 0
     train_cluster_data = []
+
+
 
     db = DBSCAN(eps=0.009, min_samples=10)
     vector_counter = 0
@@ -109,46 +108,6 @@ def main(config_file):
     print("Estimated number of clusters: %d" % n_clusters_)
     print("Estimated number of noise points: %d" % n_noise_)
 
-    # run.log(
-    #     {"train/loss": loss, "epoch": epoch, "step": global_step},
-    #     step=global_step,
-    # )
-
-    if 1 == 0:
-        model.eval()
-        test_loss = 0.0
-        with torch.no_grad():
-            for val_batch in tqdm(test_loader):
-                val_batch = val_batch.to(device)
-                val_outputs = model(val_batch, b_t=b_t)
-                test_loss += nn.MSELoss()(val_outputs, val_batch).item()
-
-                # run.log({"eval/aux_loss": val_aux_loss.item(), "epoch": epoch, "step": global_step},
-                #         step=global_step)
-
-        test_loss /= len(test_loader)
-        imgs_decoded, imgsQ_decoded, bpp = process_images(
-            test_loader, model, device, b
-        )
-
-        fig, psnr_decoded, psnr_decoded_q, _ = display_images_and_save_pdf(
-            test_dataset, imgs_decoded, imgsQ_decoded, bpp
-        )
-
-        # run.log(
-        #     {
-        #         "eval/loss": test_loss,
-        #         "epoch": epoch,
-        #         "step": global_step,
-        #         "eval/cherry_pick": fig,
-        #         "eval/psnr_ae": psnr_decoded,
-        #         "eval/psnr_ae_q": psnr_decoded_q,
-        #         "eval/bpp": np.mean(bpp),
-        #     },
-        #     step=global_step,
-        # )
-
-    # wandb.finish()
     logger.info("***** Training finished *****")
 
 

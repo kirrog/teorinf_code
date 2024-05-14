@@ -35,8 +35,12 @@ def main(config_file):
     test_loader = DataLoader(
         test_dataset, batch_size=args_config["batch_size"], shuffle=False
     )
+    quantization_mask = False
+    if "quantization_mask" in args_config:
+        quantization_mask = args_config["quantization_mask"] == 1
 
-    imgs_decoded, imgsQ_decoded, bpp = process_images(test_loader, model, device, b)
+    imgs_decoded, imgsQ_decoded, bpp = process_images(test_loader, model, device, b,
+                                                      mask_quantization=quantization_mask)
     fig, psnr_decoded, psnr_decoded_q, _ = display_images_and_save_pdf(test_dataset, imgs_decoded, imgsQ_decoded, bpp,
                                                                        filepath=output_filename)
 
