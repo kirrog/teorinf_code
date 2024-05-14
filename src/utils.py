@@ -7,12 +7,13 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from EntropyCodec import *
-from matplotlib import pyplot as plt
 from PIL import Image
+from matplotlib import pyplot as plt
 from torchvision import transforms
 from torchvision.models import vgg16
 
 to_pil_transform = transforms.ToPILImage()
+
 
 def PSNR_RGB(image1, image2):
     mse = np.mean((image1 - image2) ** 2)
@@ -20,12 +21,14 @@ def PSNR_RGB(image1, image2):
         return float('inf')
     return 20 * np.log10(255.0 / np.sqrt(mse))
 
+
 def PSNR(y_true, y_pred):
     max_pixel = 1.0
     mse = torch.mean(torch.square(y_pred - y_true))
     if mse == 0:
         return float('inf')
     return (10 * torch.log10(max_pixel ** 2 / mse)).item()
+
 
 def EntropyEncoder(enc_img, size_z, size_h, size_w):
     temp = enc_img.astype(np.uint8).copy()
@@ -43,6 +46,7 @@ def EntropyDecoder(bitstream, size_z, size_h, size_w):
     HiddenLayersDecoder(decoded_data, size_w, size_h, size_z, bitstream, FrameOffset)
     return decoded_data
 
+
 def process_images(test_loader, model, device, b, w=128, h=128):
     imgs_encoded = []
     imgs_decoded = []
@@ -58,7 +62,6 @@ def process_images(test_loader, model, device, b, w=128, h=128):
 
     imgs_encoded = torch.vstack(imgs_encoded)
     imgs_decoded = torch.vstack(imgs_decoded)
-
 
     max_encoded_imgs = imgs_encoded.amax(dim=(1, 2, 3), keepdim=True)
     # Normalize and quantize
@@ -100,6 +103,7 @@ def process_images(test_loader, model, device, b, w=128, h=128):
 
     return imgs_decoded, imgsQ_decoded, bpp
 
+
 def JPEGRDSingleImage(torch_img, TargetBPP):
     image = to_pil_transform(torch_img)
 
@@ -123,8 +127,9 @@ def JPEGRDSingleImage(torch_img, TargetBPP):
             realpsnr = psnr
             realQ = Q
             final_image = image_dec
-            
+
     return final_image, realQ, realbpp, realpsnr
+
 
 def display_images_and_save_pdf(test_dataset, imgs_decoded, imgsQ_decoded, bpp, filepath=None, NumImagesToShow=None):
     if NumImagesToShow is None:
@@ -142,7 +147,7 @@ def display_images_and_save_pdf(test_dataset, imgs_decoded, imgsQ_decoded, bpp, 
         plt.imshow(to_pil_transform(test_dataset[i]), interpolation="nearest")
         plt.title("", fontsize=10)
         plt.axis('off')
-    
+
     for i in range(NumImagesToShow):
         psnr = PSNR(test_dataset[i], imgs_decoded[i])
         psnr_decoded.append(psnr)
@@ -150,7 +155,7 @@ def display_images_and_save_pdf(test_dataset, imgs_decoded, imgsQ_decoded, bpp, 
         plt.imshow(to_pil_transform(imgs_decoded[i]), interpolation="nearest")
         plt.title(f"PSNR: {psnr:.2f}", fontsize=10)
         plt.axis('off')
-    
+
     for i in range(NumImagesToShow):
         psnr = PSNR(test_dataset[i], imgsQ_decoded[i])
         psnr_decoded_q.append(psnr)
@@ -158,7 +163,6 @@ def display_images_and_save_pdf(test_dataset, imgs_decoded, imgsQ_decoded, bpp, 
         plt.imshow(to_pil_transform(imgsQ_decoded[i]), interpolation="nearest")
         plt.title(f"PSNR: {psnr:.2f} | BPP: {bpp[i]:.2f}", fontsize=10)
         plt.axis('off')
-    
 
     for i in range(NumImagesToShow):
         jpeg_img, JPEGQP, JPEGrealbpp, JPEGrealpsnr = JPEGRDSingleImage(test_dataset[i], bpp[i])
@@ -184,6 +188,7 @@ def set_random_seed(seed):
     torch.cuda.manual_seed_all(seed)
     torch.backends.cudnn.benchmark = False
     torch.backends.cudnn.deterministic = True
+
 
 class PerceptualLoss(nn.Module):
     def __init__(self):

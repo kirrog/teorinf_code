@@ -2,7 +2,6 @@ import click
 import torch
 import yaml
 from torch.utils.data import DataLoader
-from tqdm import tqdm
 from yaml import CLoader
 
 from src.data.make_dataset import ImageDataset
@@ -38,7 +37,9 @@ def main(config_file):
     )
 
     imgs_decoded, imgsQ_decoded, bpp = process_images(test_loader, model, device, b)
-    fig, psnr_decoded, psnr_decoded_q, _ = display_images_and_save_pdf(test_dataset, imgs_decoded, imgsQ_decoded, bpp, filepath=output_filename)
+    fig, psnr_decoded, psnr_decoded_q, _ = display_images_and_save_pdf(test_dataset, imgs_decoded, imgsQ_decoded, bpp,
+                                                                       filepath=output_filename)
+
 
 if __name__ == "__main__":
     main()

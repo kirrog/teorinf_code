@@ -106,7 +106,8 @@ def main(config_file):
                     if use_aux_loss:
                         val_aux_loss = AUX_Loss(outputs, train_batch)
                         loss += aux_lambda * aux_loss
-                        run.log({"eval/aux_loss": val_aux_loss.item(), "epoch": epoch, "step": global_step}, step=global_step)
+                        run.log({"eval/aux_loss": val_aux_loss.item(), "epoch": epoch, "step": global_step},
+                                step=global_step)
 
             test_loss /= len(test_loader)
             imgs_decoded, imgsQ_decoded, bpp = process_images(

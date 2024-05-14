@@ -1,0 +1,12 @@
+2024-05-14 15:06:07.640 | INFO     | src.modeling.base:load:23 - Модель загружена из ./artifacts/base_ae_test-b_2-lr_3e04/epoch_2659/base_ae.pth
+2024-05-14 15:06:07.643 | INFO     | __main__:main:69 - ***** Running training *****
+2024-05-14 15:06:07.643 | INFO     | __main__:main:70 - Num examples = 204
+100%|██████████| 102/102 [00:12<00:00,  7.97it/s]
+Total number of vectors: 52224
+Vectors aggregated: [     0.              0.              0.              0.
+ 145135.79365951      0.              0.              0.
+ 124281.67261736      0.         124360.11314392      0.
+      0.              0.              0.              0.        ]
+Estimated number of clusters: 12
+Estimated number of noise points: 52063
+2024-05-14 15:06:21.913 | INFO     | __main__:main:152 - ***** Training finished *****

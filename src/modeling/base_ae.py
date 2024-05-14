@@ -42,3 +42,15 @@ class BaseAutoEncoder(BaseModel):
             x = x + noise
         x = self.decoder(x)
         return x
+
+    def encode(self, x, b_t=None):
+        x = self.encoder(x)
+        if self.training and b_t is not None:
+            max_val = x.max() / (2 ** (b_t + 1))
+            noise = torch.rand_like(x) * max_val
+            x = x + noise
+        return x
+
+    def decode(self, x):
+        x = self.decoder(x)
+        return x
