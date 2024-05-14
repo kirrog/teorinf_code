@@ -1,4 +1,5 @@
 from src.modeling.base_ae import BaseAutoEncoder
+from src.modeling.base_ae_distilled import BaseAutoEncoderDistilled
 from src.modeling.ln_gelu_ae import LNAutoEncoder
 from src.modeling.xavier_ln_gelu_ae import XAvierLNAutoEncoder
 from src.modeling.xavier_gelu_ae import XAvierAutoEncoder
@@ -8,6 +9,7 @@ from src.modeling.residual_ae import ResAutoEncoder
 
 MODEL_DICT = {
     "base_ae": BaseAutoEncoder,
+    "base_ae_distill": BaseAutoEncoderDistilled,
     "ln_ae": LNAutoEncoder,
     "xv_ln_ae": XAvierLNAutoEncoder,
     "xv_ae": XAvierAutoEncoder,
