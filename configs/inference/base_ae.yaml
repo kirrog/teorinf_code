@@ -1,0 +1,12 @@
+model:
+  type: base_ae
+  model_name: base_ae
+  model_kwargs:
+
+data_path: ./test
+
+seed: 42
+model_dir: ./artifacts/base_ae-b_2-lr_3e04-b_s_128/epoch_2999
+batch_size: 64
+output_filename: ./artifacts/base_ae_test-b_2-lr_3e04/epoch_2659/base_ae-b_2-lr_3e04.pdf
+b: 2
